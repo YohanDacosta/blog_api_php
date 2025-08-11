@@ -39,7 +39,7 @@ services:
         environment:
             APP_ENV: dev
             APP_SECRET: d5d95fcd53207a4001dd388251e5bd7b
-            DATABASE_URL: "mysql://root:admin@db:3306/api_rest_stack_overflow?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
+            DATABASE_URL: "mysql://root:admin@db:3306/blog_api_rest?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
         volumes:
             - ./:/var/www/html/
         networks:
