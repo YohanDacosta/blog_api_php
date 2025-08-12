@@ -2,41 +2,61 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ApiResource(
+    normalizationContext: [
+        AbstractNormalizer::GROUPS => ['User:read'],
+        AbstractObjectNormalizer::SKIP_UNINITIALIZED_VALUES
+    ],
+    denormalizationContext: [
+        AbstractNormalizer::GROUPS => ['User:write']
+    ]
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(type: 'uuid')]
+    #[Groups(groups: ['User:read'])]
+    private ?Uuid $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(groups: ['User:read', 'User:write'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Groups(groups: ['User:read'])]
     private array $roles = [];
 
     /**
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Groups(groups: ['User:write'])]
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(groups: ['User:read', 'User:write'])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(groups: ['User:read', 'User:write'])]
     private ?string $lastname = null;
 
     #[ORM\Column]
@@ -46,20 +66,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?bool $isDelete = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    #[Groups(groups: ['User:read', 'User:write'])]
+    private ?\DateTimeImmutable $createdAt = null;
 
     /**
      * @var Collection<int, Comment>
      */
-    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'author_id', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'author', orphanRemoval: true)]
     private Collection $comments;
 
     public function __construct()
     {
+        $this->id = Uuid::v4();
+        $this->roles = $this->getRoles();
+        $this->isStaff = false;
+        $this->isDelete = false;
+        $this->createdAt = new DateTimeImmutable('now');
         $this->comments = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ?Uuid
     {
         return $this->id;
     }
@@ -190,12 +216,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->created_at = $created_at;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -212,7 +238,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->comments->contains($comment)) {
             $this->comments->add($comment);
-            $comment->setAuthorId($this);
+            $comment->setAuthor($this);
         }
 
         return $this;
@@ -222,8 +248,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->comments->removeElement($comment)) {
             // set the owning side to null (unless already changed)
-            if ($comment->getAuthorId() === $this) {
-                $comment->setAuthorId(null);
+            if ($comment->getAuthor() === $this) {
+                $comment->setAuthor(null);
             }
         }
 

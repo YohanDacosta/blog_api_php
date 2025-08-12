@@ -15,19 +15,19 @@ class Comment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'text')]
     private ?string $content = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $author_id = null;
+    private ?User $author = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Post $post_id = null;
+    private ?Post $post = null;
 
     public function getId(): ?int
     {
@@ -48,36 +48,36 @@ class Comment
 
     public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->created_at = $created_at;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
 
-    public function getAuthorId(): ?User
+    public function getAuthor(): ?User
     {
-        return $this->author_id;
+        return $this->author;
     }
 
-    public function setAuthorId(?User $author_id): static
+    public function setAuthor(?User $author): static
     {
-        $this->author_id = $author_id;
+        $this->author = $author;
 
         return $this;
     }
 
-    public function getPostId(): ?Post
+    public function getPost(): ?Post
     {
-        return $this->post_id;
+        return $this->post;
     }
 
-    public function setPostId(?Post $post_id): static
+    public function setPost(?Post $post): static
     {
-        $this->post_id = $post_id;
+        $this->post = $post;
 
         return $this;
     }
