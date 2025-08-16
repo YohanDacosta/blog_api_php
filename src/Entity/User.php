@@ -2,62 +2,64 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use App\Repository\UserRepository;
 use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\SerializedName;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\SerializedName;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use App\Dto\Api\UserDto;
+use App\Repository\UserRepository;
+use App\State\Processor\UserProcessor;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\ApiResource;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource(
-    normalizationContext: [
-        AbstractNormalizer::GROUPS => ['User:read'],
-        AbstractObjectNormalizer::SKIP_UNINITIALIZED_VALUES
+    operations: [
+        new Post(
+        	input: UserDto::class,
+        	processor: UserProcessor::class,
+            validationContext: ['groups' => ['user:create']],
+            denormalizationContext: ['groups' => ['user:create']],
+    	),
     ],
-    denormalizationContext: [
-        AbstractNormalizer::GROUPS => ['User:write']
-    ]
+    normalizationContext: ['groups' => ['user:read']],
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
-    #[Groups(groups: ['User:read'])]
+    #[Groups(['user:read'])]
     private ?Uuid $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(groups: ['User:read', 'User:write'])]
+    #[Groups(['user:read', 'user:write'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(groups: ['User:read'])]
     private array $roles = [];
 
     /**
      * @var string The hashed password
      */
     #[ORM\Column]
-    #[Groups(groups: ['User:write'])]
+    #[Groups(groups: ['user:write'])]
     private ?string $password = null;
 
     #[ORM\Column(length: 100)]
-    #[Groups(groups: ['User:read', 'User:write'])]
+    #[Groups(groups: ['user:read', 'user:write'])]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Groups(groups: ['User:read', 'User:write'])]
+    #[Groups(groups: ['user:read', 'user:write'])]
     private ?string $lastname = null;
 
     #[ORM\Column]
@@ -67,7 +69,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?bool $isDelete = null;
 
     #[ORM\Column]
-    #[Groups(groups: ['User:read', 'User:write'])]
+    #[Groups(groups: ['user:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     /**
@@ -76,7 +78,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'author', orphanRemoval: true)]
     private Collection $comments;
 
-    #[Groups(['User:write'])]
+    #[Groups(['user:write'])]
     #[SerializedName('password')] 
     private ?string $plainPassword = null;
 
