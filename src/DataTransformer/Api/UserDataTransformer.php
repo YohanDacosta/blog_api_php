@@ -2,10 +2,10 @@
 
 namespace App\DataTransformer\Api;
 
-use ApiPlatform\Validator\ValidatorInterface;
-use App\Dto\Api\UserDto;
 use App\Entity\User;
+use App\Dto\Api\UserDto;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use ApiPlatform\Validator\ValidatorInterface;
 
 class UserDataTransformer
 {
