@@ -2,7 +2,6 @@
 
 namespace App\Dto\Api;
 
-use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -10,35 +9,30 @@ use App\Validator\Constraints as AppAssert;
 
 class UserDto
 {   
-    #[Assert\NotBlank(message: 'The id field should not be blank', groups: ['user:validate'])]
-    #[Assert\Uuid(message: 'This is not a valid ID', groups: ['user:validate'])]
-    #[Groups(['user:validate'])]
-    private Uuid $id;
-
     #[Assert\NotBlank(message: 'The firstname field should not be blank.', groups: ['user:create'])]
     #[Groups(['user:create', 'user:update'])]
-    private string $firstname;
+    private ?string $firstname = null;
 
     #[Assert\NotBlank(message: 'The lastname field should not be blank.', groups: ['user:create'])]
     #[Groups(['user:create', 'user:update'])]
-    private string $lastname;
+    private ?string $lastname = null;
 
     #[Assert\NotBlank(message: 'Email should not be blank.', groups: ['user:create'])]
-    #[Assert\Email(message: 'The email field {{ value }} is not a valid email.', groups: ['user:create'])]
+    #[Assert\Email(message: 'The email field {{ value }} is not a valid email.', groups: ['user:create', 'user:update'])]
     #[AppAssert\UniqueEmail(groups: ['user:create', 'user:update'])]
     #[Groups(['user:create', 'user:update'])]
-    private string $email;
+    private ?string $email = null;
 
     #[Assert\NotBlank(message: 'The password field should not be blank.', groups: ['user:create'])]
-    #[Assert\Length(min: 8, groups: ['user:create'])]
+    #[Assert\Length(min: 8, groups: ['user:create', 'user:update'])]
     #[Groups(['user:create', 'user:update'])]
-    private string $password;
+    private ?string $password = null;
 
     #[Assert\NotBlank(message: 'The confirm password field should not be blank.', groups: ['user:create'])]
     #[Groups(['user:create', 'user:update'])]
-    private string $confirmPassword;
+    private ?string $confirmPassword = null;
 
-    #[Assert\Callback(groups: ['user:create'])]
+    #[Assert\Callback(groups: ['user:create', 'user:update'])]
     private function validate(ExecutionContextInterface $context): void
     {
         if ($this->password !== $this->confirmPassword) {
@@ -48,7 +42,7 @@ class UserDto
         }
     }
 
-    public function getFirstname(): string
+    public function getFirstname(): ?string
     {
         return $this->firstname;
     }
@@ -60,7 +54,7 @@ class UserDto
         return $this;
     }
 
-    public function getLastname(): string
+    public function getLastname(): ?string
     {
         return $this->lastname;
     }

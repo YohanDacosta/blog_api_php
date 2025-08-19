@@ -13,20 +13,34 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Dto\Api\UserDto;
 use App\Repository\UserRepository;
-use App\State\Processor\UserProcessor;
+use App\State\Processor\User\UserPostProcessor;
+use App\State\Processor\User\UserPatchProcessor;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource(
     operations: [
         new Post(
-        	input: UserDto::class,
-        	processor: UserProcessor::class,
+            input: UserDto::class,
+        	processor: UserPostProcessor::class,
             validationContext: ['groups' => ['user:create']],
             denormalizationContext: ['groups' => ['user:create']],
     	),
+        new Get(),
+        new GetCollection(),
+        new Patch(
+            input: UserDto::class,
+        	processor: UserPatchProcessor::class,
+            validationContext: ['groups' => ['user:update']],
+            denormalizationContext: ['groups' => ['user:update']],
+        ),
+        new Delete()
     ],
     normalizationContext: ['groups' => ['user:read']],
 )]
@@ -39,7 +53,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180)]
     #[Groups(['user:read', 'user:write'])]
-    private ?string $email = null;
+    private string $email;
 
     /**
      * @var list<string> The user roles
@@ -52,7 +66,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     #[Groups(groups: ['user:write'])]
-    private ?string $password = null;
+    private string $password;
 
     #[ORM\Column(length: 100)]
     #[Groups(groups: ['user:read', 'user:write'])]
@@ -97,7 +111,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -144,7 +158,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): ?string
+    public function getPassword(): string
     {
         return $this->password;
     }
