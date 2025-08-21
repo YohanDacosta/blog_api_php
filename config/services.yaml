@@ -21,3 +21,11 @@ services:
     App\State\Processor\User\UserPostProcessor:
         arguments:
             $persistProcessor: "@api_platform.doctrine.orm.state.persist_processor"
+
+    App\State\Processor\Article\ArticlePostProcessor:
+        arguments:
+            $persistProcessor: "@api_platform.doctrine.orm.state.persist_processor"
+
+    App\State\Processor\Comment\CommentPostProcessor:
+        arguments:
+            $persistProcessor: "@api_platform.doctrine.orm.state.persist_processor"

@@ -1,18 +1,18 @@
 <?php
 
-namespace App\State\Processor\User;
+namespace App\State\Processor\Comment;
 
-use App\Entity\User; 
-use App\Dto\Api\UserDto;
-use App\DataTransformer\Api\User\UserPatchDataTransformer;
+use App\Entity\Comment; 
+use App\Dto\Api\CommentDto;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use ApiPlatform\Metadata\Operation;
+use App\DataTransformer\Api\Comment\CommentPatchDataTransformer;
 
-class UserPatchProcessor implements PersistProcessorInterface
+class CommentPatchProcessor implements PersistProcessorInterface
 {
     public function __construct(
-        private UserPatchDataTransformer $userDataTransformer,
+        private CommentPatchDataTransformer $commentDataTransformer,
         private EntityManagerInterface $entityManager,
     ) {}
 
@@ -21,9 +21,9 @@ class UserPatchProcessor implements PersistProcessorInterface
         Operation $operation, 
         array $uriVariables = [], 
         array $context = []
-    ): User
+    )
     {
-        if (!$data instanceof UserDto) {
+        if (!$data instanceof CommentDto) {
             return $data;
         }
 
@@ -31,17 +31,17 @@ class UserPatchProcessor implements PersistProcessorInterface
             throw new \InvalidArgumentException('ID is required for patch operation');
         }
 
-        $user = $this->entityManager->getRepository(User::class)
+        $comment = $this->entityManager->getRepository(Comment::class)
             ->find($uriVariables['id']);
 
-        if (!$user) {
-            throw new NotFoundHttpException('User not found');
+        if (!$comment) {
+            throw new NotFoundHttpException('Comment not found');
         }
 
-        $this->userDataTransformer->transform($data, $user);
+        $this->commentDataTransformer->transform($data, $comment);
 
         $this->entityManager->flush();
 
-        return $user;
+        return $comment;
     }
 }

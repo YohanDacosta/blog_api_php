@@ -1,18 +1,18 @@
 <?php
 
-namespace App\State\Processor\User;
+namespace App\State\Processor\Article;
 
-use App\Entity\User; 
-use App\Dto\Api\UserDto;
-use App\DataTransformer\Api\User\UserPatchDataTransformer;
+use App\Entity\Article; 
+use App\Dto\Api\ArticleDto;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use ApiPlatform\Metadata\Operation;
+use App\DataTransformer\Api\Article\ArticlePatchDataTransformer;
 
-class UserPatchProcessor implements PersistProcessorInterface
+class ArticlePatchProcessor implements PersistProcessorInterface
 {
     public function __construct(
-        private UserPatchDataTransformer $userDataTransformer,
+        private ArticlePatchDataTransformer $articleDataTransformer,
         private EntityManagerInterface $entityManager,
     ) {}
 
@@ -21,9 +21,9 @@ class UserPatchProcessor implements PersistProcessorInterface
         Operation $operation, 
         array $uriVariables = [], 
         array $context = []
-    ): User
+    )
     {
-        if (!$data instanceof UserDto) {
+        if (!$data instanceof ArticleDto) {
             return $data;
         }
 
@@ -31,17 +31,17 @@ class UserPatchProcessor implements PersistProcessorInterface
             throw new \InvalidArgumentException('ID is required for patch operation');
         }
 
-        $user = $this->entityManager->getRepository(User::class)
+        $article = $this->entityManager->getRepository(Article::class)
             ->find($uriVariables['id']);
 
-        if (!$user) {
-            throw new NotFoundHttpException('User not found');
+        if (!$article) {
+            throw new NotFoundHttpException('Article not found');
         }
 
-        $this->userDataTransformer->transform($data, $user);
+        $this->articleDataTransformer->transform($data, $article);
 
         $this->entityManager->flush();
 
-        return $user;
+        return $article;
     }
 }

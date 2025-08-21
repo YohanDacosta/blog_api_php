@@ -2,15 +2,42 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use App\Repository\PostRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use DateTimeImmutable;
+use App\Dto\Api\ArticleDto;
+use App\Repository\ArticleRepository;
+use App\State\Processor\Article\ArticlePostProcessor;
+use App\State\Processor\Article\ArticlePatchProcessor;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 
-#[ORM\Entity(repositoryClass: PostRepository::class)]
-#[ApiResource]
-class Post
+#[ORM\Entity(repositoryClass: ArticleRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(
+            input: ArticleDto::class,
+        	processor: ArticlePostProcessor::class,
+            validationContext: ['groups' => ['article:create']],
+            denormalizationContext: ['groups' => ['article:create']],
+        ),
+        new Patch(
+            input: ArticleDto::class,
+        	processor: ArticlePatchProcessor::class,
+            validationContext: ['groups' => ['article:update']],
+            denormalizationContext: ['groups' => ['article:update']],
+        ),
+        new Delete()
+    ]
+)]
+class Article
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -20,24 +47,25 @@ class Post
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: 'text')]
     private ?string $content = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'posts')]
+    #[ORM\ManyToOne(inversedBy: 'articles')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $author = null;
 
     /**
      * @var Collection<int, Comment>
      */
-    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'post', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'article', orphanRemoval: true)]
     private Collection $comments;
 
     public function __construct()
     {
+        $this->createdAt = new DateTimeImmutable('now');
         $this->comments = new ArrayCollection();
     }
 
@@ -106,7 +134,7 @@ class Post
     {
         if (!$this->comments->contains($comment)) {
             $this->comments->add($comment);
-            $comment->setPost($this);
+            $comment->setArticle($this);
         }
 
         return $this;
@@ -116,8 +144,8 @@ class Post
     {
         if ($this->comments->removeElement($comment)) {
             // set the owning side to null (unless already changed)
-            if ($comment->getPost() === $this) {
-                $comment->setPost(null);
+            if ($comment->getArticle() === $this) {
+                $comment->setArticle(null);
             }
         }
 

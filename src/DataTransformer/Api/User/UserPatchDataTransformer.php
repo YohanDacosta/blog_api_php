@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DataTransformer\Api;
+namespace App\DataTransformer\Api\User;
 
 use App\Entity\User;
 use App\Dto\Api\UserDto;

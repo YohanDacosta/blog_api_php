@@ -2,12 +2,39 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
+use DateTimeImmutable;
+use App\Dto\Api\CommentDto;
 use App\Repository\CommentRepository;
+use App\State\Processor\Comment\CommentPostProcessor;
+use App\State\Processor\Comment\CommentPatchProcessor;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(
+            input: CommentDto::class,
+        	processor: CommentPostProcessor::class,
+            validationContext: ['groups' => ['comment:create']],
+            denormalizationContext: ['groups' => ['comment:create']],
+        ),
+        new Patch(
+            input: CommentDto::class,
+        	processor: CommentPatchProcessor::class,
+            validationContext: ['groups' => ['comment:update']],
+            denormalizationContext: ['groups' => ['comment:update']],
+        ),
+        new Delete()
+    ]
+)]
 class Comment
 {
     #[ORM\Id]
@@ -27,7 +54,12 @@ class Comment
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Post $post = null;
+    private ?Article $article = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new DateTimeImmutable('now');
+    }
 
     public function getId(): ?int
     {
@@ -70,14 +102,14 @@ class Comment
         return $this;
     }
 
-    public function getPost(): ?Post
+    public function getArticle(): ?Article
     {
-        return $this->post;
+        return $this->article;
     }
 
-    public function setPost(?Post $post): static
+    public function setArticle(?Article $article): static
     {
-        $this->post = $post;
+        $this->article = $article;
 
         return $this;
     }
