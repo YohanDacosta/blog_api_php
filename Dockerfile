@@ -1,13 +1,11 @@
-FROM php:8.2-fpm
-
-RUN apt-get update && apt-get install -y
+FROM php:8.2-fpm-bookworm
 
 RUN apt-get update && apt-get install -y \
         git \
         zlib1g-dev \
         libxml2-dev \
         libzip-dev \
-    && docker-php-ext-install \ 
+    && docker-php-ext-install \
         zip \
         intl \
 		mysqli \
