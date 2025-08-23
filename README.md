@@ -22,7 +22,7 @@ Incluye **DTOs** y se puede ejecutar fácilmente usando **Docker Compose**.
 ## Características principales
 
 -   Gestión de **Usuarios** (registro, login con JWT)
--   Gestión de **Posts / Entradas del blog**
+-   Gestión de **Articles**
 -   DTOs para exponer solo los campos necesarios en la API
 -   Autenticación y autorización con **JWT**
 -   API RESTful lista para consumir desde frontend o mobile
@@ -38,12 +38,15 @@ Incluye **DTOs** y se puede ejecutar fácilmente usando **Docker Compose**.
 git clone https://github.com/YohanDacosta/blog_api_php.git
 cd blog-api-php
 
+````
 2. **Crear los contenedares e imagenes**
-```bash
+
+````bash
 docker-compose exec up -d --build
 
-3. **Instalar dependencias**
-```bash
-docker-compose exec -it php bash
-
 ````
+4. **Instalar dependencias**
+
+````bash
+docker-compose exec -it php bash
+composer install
